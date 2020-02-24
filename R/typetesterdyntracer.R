@@ -21,7 +21,7 @@ destroy_dyntracer <- function(dyntracer) {
 }
 
 
-dyntrace_promises <- function(expr,
+dyntrace_type_tests <- function(expr,
                               output_dirpath,
                               verbose = FALSE,
                               truncate = TRUE,
