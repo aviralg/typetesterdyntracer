@@ -1,5 +1,5 @@
-#ifndef PROMISEDYNTRACER_EVENT_H
-#define PROMISEDYNTRACER_EVENT_H
+#ifndef TYPETESTERDYNTRACER_EVENT_H
+#define TYPETESTERDYNTRACER_EVENT_H
 
 #include <string>
 
@@ -124,4 +124,4 @@ inline std::string to_string(const Event event) {
     return "UnknownEvent";
 }
 
-#endif /* PROMISEDYNTRACER_EVENT_H */
+#endif /* TYPETESTERDYNTRACER_EVENT_H */

@@ -1,5 +1,5 @@
-#ifndef PROMISEDYNTRACER_TEXT_DATA_TABLE_STREAM_H
-#define PROMISEDYNTRACER_TEXT_DATA_TABLE_STREAM_H
+#ifndef TYPETESTERDYNTRACER_TEXT_DATA_TABLE_STREAM_H
+#define TYPETESTERDYNTRACER_TEXT_DATA_TABLE_STREAM_H
 
 #include "DataTableStream.h"
 
@@ -91,4 +91,4 @@ class TextDataTableStream: public DataTableStream {
     static const std::string row_separator_;
 };
 
-#endif /* PROMISEDYNTRACER_TEXT_DATA_TABLE_STREAM_H */
+#endif /* TYPETESTERDYNTRACER_TEXT_DATA_TABLE_STREAM_H */

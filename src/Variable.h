@@ -1,5 +1,5 @@
-#ifndef PROMISEDYNTRACER_VARIABLE_H
-#define PROMISEDYNTRACER_VARIABLE_H
+#ifndef TYPETESTERDYNTRACER_VARIABLE_H
+#define TYPETESTERDYNTRACER_VARIABLE_H
 
 #include "utilities.h"
 
@@ -76,4 +76,4 @@ class Variable {
     const env_id_t env_id_;
 };
 
-#endif /* PROMISEDYNTRACER_VARIABLE_H */
+#endif /* TYPETESTERDYNTRACER_VARIABLE_H */

@@ -1,5 +1,5 @@
-#ifndef PROMISEDYNTRACER_TABLE_H
-#define PROMISEDYNTRACER_TABLE_H
+#ifndef TYPETESTERDYNTRACER_TABLE_H
+#define TYPETESTERDYNTRACER_TABLE_H
 
 #include "DataTableStream.h"
 
@@ -29,4 +29,4 @@ SEXP read_data_table(SEXP table_filepath, SEXP binary, SEXP compression_level);
 }
 #endif
 
-#endif /* PROMISEDYNTRACER_TABLE_H */
+#endif /* TYPETESTERDYNTRACER_TABLE_H */

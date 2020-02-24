@@ -1,5 +1,5 @@
-#ifndef PROMISEDYNTRACER_EXECUTION_CONTEXT_H
-#define PROMISEDYNTRACER_EXECUTION_CONTEXT_H
+#ifndef TYPETESTERDYNTRACER_EXECUTION_CONTEXT_H
+#define TYPETESTERDYNTRACER_EXECUTION_CONTEXT_H
 
 #include "sexptypes.h"
 
@@ -94,4 +94,4 @@ using const_execution_context_iterator = execution_contexts_t::const_iterator;
 using const_reverse_execution_context_iterator =
     execution_contexts_t::const_reverse_iterator;
 
-#endif /* PROMISEDYNTRACER_EXECUTION_CONTEXT_H */
+#endif /* TYPETESTERDYNTRACER_EXECUTION_CONTEXT_H */

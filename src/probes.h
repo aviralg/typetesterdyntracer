@@ -1,5 +1,5 @@
-#ifndef PROMISEDYNTRACER_PROBES_H
-#define PROMISEDYNTRACER_PROBES_H
+#ifndef TYPETESTERDYNTRACER_PROBES_H
+#define TYPETESTERDYNTRACER_PROBES_H
 
 #include "TracerState.h"
 #include "utilities.h"
@@ -157,4 +157,4 @@ void substitute_call(dyntracer_t* dyntracer,
                      const SEXP rho,
                      const SEXP return_value);
 }
-#endif /* __PROBES_H__ */
+#endif /* TYPETESTERDYNTRACER_PROBES_H */

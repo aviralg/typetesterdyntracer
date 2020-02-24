@@ -1,5 +1,5 @@
-#ifndef PROMISEDYNTRACER_UTILITIES_H
-#define PROMISEDYNTRACER_UTILITIES_H
+#ifndef TYPETESTERDYNTRACER_UTILITIES_H
+#define TYPETESTERDYNTRACER_UTILITIES_H
 
 #include "constants.h"
 #include "definitions.h"
@@ -108,4 +108,4 @@ constexpr auto to_underlying(E e) noexcept {
     return static_cast<std::underlying_type_t<E>>(e);
 }
 
-#endif /* PROMISEDYNTRACER__UTILITIES_H */
+#endif /* TYPETESTERDYNTRACER_UTILITIES_H */

@@ -1,5 +1,5 @@
-#ifndef PROMISEDYNTRACER_STREAM_H
-#define PROMISEDYNTRACER_STREAM_H
+#ifndef TYPETESTERDYNTRACER_STREAM_H
+#define TYPETESTERDYNTRACER_STREAM_H
 
 #include <cstddef>
 
@@ -21,4 +21,4 @@ class Stream {
     Stream* sink_;
 };
 
-#endif /* PROMISEDYNTRACER_STREAM_H */
+#endif /* TYPETESTERDYNTRACER_STREAM_H */

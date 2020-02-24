@@ -1,5 +1,5 @@
-#ifndef PROMISEDYNTRACER_SUBSTITUTE_CLASS_H
-#define PROMISEDYNTRACER_SUBSTITUTE_CLASS_H
+#ifndef TYPETESTERDYNTRACER_SUBSTITUTE_CLASS_H
+#define TYPETESTERDYNTRACER_SUBSTITUTE_CLASS_H
 
 #include <string>
 
@@ -28,4 +28,4 @@ inline std::string to_string(const SubstituteClass subst_class) {
     return "Undefined";
 }
 
-#endif /* PROMISEDYNTRACER_SUBSTITUTE_CLASS_H */
+#endif /* TYPETESTERDYNTRACER_SUBSTITUTE_CLASS_H */

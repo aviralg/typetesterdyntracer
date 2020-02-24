@@ -1,5 +1,5 @@
-#ifndef PROMISEDYNTRACER_DENOTED_VALUE_H
-#define PROMISEDYNTRACER_DENOTED_VALUE_H
+#ifndef TYPETESTERDYNTRACER_DENOTED_VALUE_H
+#define TYPETESTERDYNTRACER_DENOTED_VALUE_H
 
 #include "PromiseLifecycle.h"
 #include "sexptypes.h"
@@ -866,4 +866,4 @@ class DenotedValue {
     PromiseLifecycle lifecycle_;
 };
 
-#endif /* PROMISEDYNTRACER_DENOTED_VALUE_H */
+#endif /* TYPETESTERDYNTRACER_DENOTED_VALUE_H */

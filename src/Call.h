@@ -1,5 +1,5 @@
-#ifndef PROMISEDYNTRACER_CALL_H
-#define PROMISEDYNTRACER_CALL_H
+#ifndef TYPETESTERDYNTRACER_CALL_H
+#define TYPETESTERDYNTRACER_CALL_H
 
 #include "Argument.h"
 #include "Rdyntrace.h"
@@ -157,4 +157,4 @@ class Call {
     pos_seq_t force_order_;
 };
 
-#endif /* PROMISEDYTRACER_CALL_H */
+#endif /* TYPETESTERDYNTRACER_CALL_H */

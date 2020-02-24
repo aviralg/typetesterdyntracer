@@ -1,5 +1,5 @@
-#ifndef PROMISEDYNTRACER_PROMISE_EVENT_H
-#define PROMISEDYNTRACER_PROMISE_EVENT_H
+#ifndef TYPETESTERDYNTRACER_PROMISE_EVENT_H
+#define TYPETESTERDYNTRACER_PROMISE_EVENT_H
 
 #include "utilities.h"
 
@@ -80,4 +80,4 @@ using promise_event_sequence_t = std::vector<PromiseEvent>;
 
 std::string to_string(const PromiseEvent::Type type);
 
-#endif /* PROMISEDYNTRACER_PROMISE_EVENT_H */
+#endif /* TYPETESTERDYNTRACER_PROMISE_EVENT_H */

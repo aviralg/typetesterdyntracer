@@ -1,5 +1,5 @@
-#ifndef PROMISEDYNTRACER_SIDE_EFFECT_MODE_H
-#define PROMISEDYNTRACER_SIDE_EFFECT_MODE_H
+#ifndef TYPETESTERDYNTRACER_SIDE_EFFECT_MODE_H
+#define TYPETESTERDYNTRACER_SIDE_EFFECT_MODE_H
 
 #include <string>
 
@@ -22,4 +22,4 @@ inline std::string to_string(const SideEffectMode side_effect_mode) {
     return "Undefined";
 }
 
-#endif /* PROMISEDYNTRACER_SIDE_EFFECT_MODE_H */
+#endif /* TYPETESTERDYNTRACER_SIDE_EFFECT_MODE_H */

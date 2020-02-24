@@ -1,5 +1,5 @@
-#ifndef PROMISEDYNTRACER_PROMISE_LIFECYCLE_H
-#define PROMISEDYNTRACER_PROMISE_LIFECYCLE_H
+#ifndef TYPETESTERDYNTRACER_PROMISE_LIFECYCLE_H
+#define TYPETESTERDYNTRACER_PROMISE_LIFECYCLE_H
 
 #include "PromiseEvent.h"
 
@@ -134,4 +134,4 @@ class PromiseLifecycle {
 
 using promise_lifecycle_sequence_t = std::vector<PromiseLifecycle>;
 
-#endif /* PROMISEDYNTRACER_PROMISE_LIFECYCLE_H */
+#endif /* TYPETESTERDYNTRACER_PROMISE_LIFECYCLE_H */
