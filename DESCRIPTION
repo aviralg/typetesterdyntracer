@@ -1,10 +1,10 @@
-Package: promisedyntracer
+Package: typetesterdyntracer
 Type: Package
-Title: Generates traces for promises and other aspects related to laziness
+Title: Tests types of R functions with respect to given type annotations
 Version: 1.0
-Date: 2017-10-26
+Date: 2020-02-24
 Authors@R: c(person("Aviral", "Goel", role = c("aut", "cre"), email = "goel.aviral@gmail.com"))
-Description: Generates traces for promises and other aspects related to laziness
+Description: Tests types of R functions with respect to given type annotations
 License: GPL-2
 Encoding: UTF-8
 RoxygenNote: 6.1.0.9000
