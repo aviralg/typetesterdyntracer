@@ -1,2 +1,2 @@
-useDynLib(promisedyntracer, .registration = TRUE, .fixes = "C_")
+useDynLib(typetesterdyntracer, .registration = TRUE, .fixes = "C_")
 exportPattern("^[[:alpha:]]+")
