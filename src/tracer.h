@@ -12,7 +12,8 @@
 extern "C" {
 #endif
 
-SEXP create_dyntracer(SEXP output_dirpath,
+SEXP create_dyntracer(SEXP type_declaration_dirpath,
+                      SEXP output_dirpath,
                       SEXP verbose,
                       SEXP truncate,
                       SEXP binary,

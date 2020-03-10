@@ -1,5 +1,6 @@
 
-create_dyntracer <- function(output_dirpath,
+create_dyntracer <- function(type_declaration_dirpath,
+                             output_dirpath,
                              verbose = FALSE,
                              truncate = TRUE,
                              binary = FALSE,
@@ -8,6 +9,7 @@ create_dyntracer <- function(output_dirpath,
     compression_level <- as.integer(compression_level)
 
     .Call(C_create_dyntracer,
+          type_declaration_dirpath,
           output_dirpath,
           verbose,
           truncate,
@@ -22,17 +24,19 @@ destroy_dyntracer <- function(dyntracer) {
 
 
 dyntrace_type_tests <- function(expr,
-                              output_dirpath,
-                              verbose = FALSE,
-                              truncate = TRUE,
-                              binary = FALSE,
-                              compression_level = 0) {
+                                type_declaration_dirpath,
+                                output_dirpath,
+                                verbose = FALSE,
+                                truncate = TRUE,
+                                binary = FALSE,
+                                compression_level = 0) {
 
     write(as.character(Sys.time()), file.path(output_dirpath, "BEGIN"))
 
     compression_level <- as.integer(compression_level)
 
-    dyntracer <- create_dyntracer(output_dirpath,
+    dyntracer <- create_dyntracer(type_declaration_dirpath,
+                                  output_dirpath,
                                   verbose,
                                   truncate,
                                   binary,

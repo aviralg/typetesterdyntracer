@@ -4,12 +4,14 @@
 
 extern "C" {
 
-SEXP create_dyntracer(SEXP output_dirpath,
+SEXP create_dyntracer(SEXP type_declaration_dirpath,
+                      SEXP output_dirpath,
                       SEXP verbose,
                       SEXP truncate,
                       SEXP binary,
                       SEXP compression_level) {
-    void* state = new TracerState(sexp_to_string(output_dirpath),
+    void* state = new TracerState(sexp_to_string(type_declaration_dirpath),
+                                  sexp_to_string(output_dirpath),
                                   sexp_to_bool(verbose),
                                   sexp_to_bool(truncate),
                                   sexp_to_bool(binary),

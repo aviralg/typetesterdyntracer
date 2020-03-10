@@ -11,6 +11,7 @@
 #include "PromiseGcSummary.h"
 #include "PromiseLifecycleSummary.h"
 #include "SideEffectSummary.h"
+#include "TypeDeclarationCache.h"
 #include "Variable.h"
 #include "sexptypes.h"
 #include "stdlibs.h"
@@ -27,7 +28,8 @@ class TracerState {
     const int compression_level_;
 
   public:
-    TracerState(const std::string& output_dirpath,
+    TracerState(const std::string& type_declaration_dirpath,
+                const std::string& output_dirpath,
                 bool verbose,
                 bool truncate,
                 bool binary,
@@ -44,7 +46,8 @@ class TracerState {
         , call_id_counter_(0)
         , object_count_(OBJECT_TYPE_TABLE_COUNT, 0)
         , event_counter_(to_underlying(Event::COUNT), 0)
-        , argument_list_creation_mode_(false) {
+        , argument_list_creation_mode_(false)
+        , type_declaration_cache_(type_declaration_dirpath) {
         event_counts_data_table_ =
             create_data_table(output_dirpath_ + "/" + "event_counts",
                               {"event", "count"},
@@ -1583,6 +1586,7 @@ class TracerState {
         context_sensitive_lookup_summaries_;
     std::vector<PromiseGcSummary> promise_gc_summaries_;
     std::vector<PromiseLifecycleSummary> promise_lifecycle_summaries_;
+    TypeDeclarationCache type_declaration_cache_;
 };
 
 #endif /* TYPETESTERDYNTRACER_TRACER_STATE_H */
