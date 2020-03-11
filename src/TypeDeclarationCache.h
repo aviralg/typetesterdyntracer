@@ -3,7 +3,6 @@
 
 #include <filesystem>
 #include <memory>
-#include <optional>
 #include <tastr/ast/ast.hpp>
 #include <tastr/parser/parser.hpp>
 
@@ -21,7 +20,7 @@ class TypeDeclarationCache {
 
     ~TypeDeclarationCache() = default;
 
-    std::optional<tastr::ast::TypeNode*>
+    tastr::ast::FunctionTypeNode*
     get_function_type(const std::string& package_name,
                       const std::string& function_name) {
         const fs::path package_path = type_declaration_dirpath_ / package_name;
@@ -37,9 +36,14 @@ class TypeDeclarationCache {
 
         auto type_iter = package->second.find(function_name);
         if (type_iter == package->second.end()) {
-            return {};
+            return nullptr;
         }
-        return type_iter->second.get();
+        tastr::ast::TypeNode* node = type_iter->second.get();
+        if (node->is_function_type_node()) {
+            return static_cast<tastr::ast::FunctionTypeNode*>(node);
+        }
+
+        return nullptr;
     }
 
     std::unordered_map<std::string, tastr::ast::TypeNodeUPtr>

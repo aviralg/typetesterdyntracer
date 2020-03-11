@@ -8,6 +8,7 @@
 #include "SubstituteSummary.h"
 #include "sexptypes.h"
 #include "utilities.h"
+#include <tastr/ast/ast.hpp>
 
 #include <fstream>
 
@@ -21,7 +22,8 @@ class Function {
         , wrapper_(true)
         , namespace_(package_name)
         , definition_(definition)
-        , id_(id) {
+        , id_(id)
+        , type_declaration_(nullptr) {
         type_ = type_of_sexp(op);
 
         if (type_ == CLOSXP) {
@@ -209,6 +211,22 @@ class Function {
     static std::tuple<std::string, std::string, function_id_t>
     compute_definition_and_id(const SEXP op);
 
+    void set_type_declaration(tastr::ast::FunctionTypeNode* type_declaration) {
+        type_declaration_ = type_declaration;
+    }
+
+    const tastr::ast::FunctionTypeNode* get_type_declaration() const {
+        return type_declaration_;
+    }
+
+    bool has_valid_type_declaration() const {
+        return !has_invalid_type_declaration();
+    }
+
+    bool has_invalid_type_declaration() const {
+        return type_declaration_ == nullptr;
+    }
+
   private:
     sexptype_t type_;
     std::size_t formal_parameter_count_;
@@ -218,6 +236,7 @@ class Function {
     function_id_t id_;
     int primitive_offset_;
     bool byte_compiled_;
+    tastr::ast::FunctionTypeNode* type_declaration_;
 
     std::vector<std::string> names_;
     std::vector<CallSummary> call_summaries_;

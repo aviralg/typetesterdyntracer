@@ -944,6 +944,11 @@ class TracerState {
 
         function_call = new Call(call_id, function_name, rho, function);
 
+        if (function->has_invalid_type_declaration()) {
+            function->set_type_declaration(
+                get_type_declaration(function->get_namespace(), function_name));
+        }
+
         if (TYPEOF(op) == CLOSXP) {
             process_closure_arguments_(function_call, op);
         } else {
@@ -1592,17 +1597,15 @@ class TracerState {
         }
     }
 
-    std::optional<tastr::ast::TypeNode*>
-    get_type_declaration(Function* function, Call* call) {
-        std::string package_name = function->get_namespace();
+    tastr::ast::FunctionTypeNode*
+    get_type_declaration(const std::string& package_name,
+                         const std::string& function_name) {
         if (package_name == "") {
-            return {};
+            return nullptr;
         }
 
-        std::string function_name = call->get_function_name();
-
         if (function_name == "") {
-            return {};
+            return nullptr;
         }
 
         return type_declaration_cache_.get_function_type(package_name,
@@ -1620,14 +1623,11 @@ class TracerState {
 
         Function* function = call->get_function();
 
-        std::optional<tastr::ast::TypeNode*> fun_type =
-            get_type_declaration(function, call);
-
-        if (fun_type) {
-            tastr::ast::FunctionTypeNode& type =
-                static_cast<tastr::ast::FunctionTypeNode&>(*fun_type.value());
-            tastr::ast::TypeNode& arg_type =
-                *type.get_parameter_types().at(parameter_position).get();
+        if (function->has_valid_type_declaration()) {
+            const tastr::ast::FunctionTypeNode* type =
+                function->get_type_declaration();
+            const tastr::ast::TypeNode& arg_type =
+                *(type->get_parameter_types().at(parameter_position).get());
             match_result = satisfies(value, arg_type);
         } else {
             match_result = Typecheck::NotAvailable;
@@ -1641,14 +1641,13 @@ class TracerState {
 
     void typecheck_function_result(Call* call, const SEXP return_value) {
         Function* function = call->get_function();
-        std::optional<tastr::ast::TypeNode*> fun_type =
-            get_type_declaration(function, call);
         int position = -1;
         Typecheck match_result;
-        if (fun_type) {
-            tastr::ast::FunctionTypeNode& type =
-                static_cast<tastr::ast::FunctionTypeNode&>(*fun_type.value());
-            match_result = satisfies(return_value, type.get_return_type());
+
+        if (function->has_valid_type_declaration()) {
+            const tastr::ast::FunctionTypeNode* type =
+                function->get_type_declaration();
+            match_result = satisfies(return_value, type->get_return_type());
         } else {
             match_result = Typecheck::NotAvailable;
         }
