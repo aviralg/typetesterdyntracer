@@ -4,6 +4,7 @@
 #include "DenotedValue.h"
 #include "definitions.h"
 #include "sexptypes.h"
+#include "typechecker.h"
 #include "utilities.h"
 
 class Call;
@@ -30,8 +31,8 @@ class Argument {
         , S4_dispatch_(false)
         , non_local_return_(false)
         , denoted_value_(nullptr)
-        , forcing_actual_argument_position_(
-              UNASSIGNED_ACTUAL_ARGUMENT_POSITION) {
+        , forcing_actual_argument_position_(UNASSIGNED_ACTUAL_ARGUMENT_POSITION)
+        , typecheck_result_(Typecheck::Undefined) {
     }
 
     Call* get_call() {
@@ -143,6 +144,12 @@ class Argument {
         return forcing_actual_argument_position_;
     }
 
+    void typecheck(SEXP value);
+
+    Typecheck get_typechecking_result() const {
+        return typecheck_result_;
+    }
+
   private:
     Call* call_;
     const int formal_parameter_position_;
@@ -160,6 +167,7 @@ class Argument {
     bool non_local_return_;
     DenotedValue* denoted_value_;
     int forcing_actual_argument_position_;
+    Typecheck typecheck_result_;
 };
 
 #endif /* TYPETESTERDYNTRACER_ARGUMENT_H */

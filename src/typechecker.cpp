@@ -23,6 +23,9 @@ std::ostream& operator<<(std::ostream& os, const Typecheck& typecheck) {
 
 std::string to_string(const Typecheck& typecheck) {
     switch (typecheck) {
+    case Typecheck::Undefined:
+        return "Undefined";
+        break;
     case Typecheck::Mismatch:
         return "Mismatch";
         break;

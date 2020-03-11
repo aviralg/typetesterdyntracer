@@ -6,6 +6,19 @@ inline TracerState& tracer_state(dyntracer_t* dyntracer) {
     return *(static_cast<TracerState*>(dyntracer->state));
 }
 
+Typecheck typecheck_function_result(Call* call, SEXP return_value) {
+    Function* function = call->get_function();
+    Typecheck match_result;
+
+    if (function->has_valid_type_declaration()) {
+        match_result = satisfies(return_value, function->get_return_type());
+    } else {
+        match_result = Typecheck::NotAvailable;
+    }
+
+    return match_result;
+}
+
 static void search_promises_in_frame(dyntracer_t* dyntracer, SEXP frame) {
     while (frame != R_NilValue) {
         SEXP value = CAR(frame);
@@ -178,9 +191,21 @@ void closure_exit(dyntracer_t* dyntracer,
 
     function_call->set_return_value_type(type_of_sexp(return_value));
 
-    state.typecheck_function_result(function_call, return_value);
-
     state.notify_caller(function_call);
+
+    for (const Argument* argument: function_call->get_arguments()) {
+        state.add_typechecking_result(function_call->get_function()->get_id(),
+                                      function_call->get_id(),
+                                      argument->get_formal_parameter_position(),
+                                      argument->get_typechecking_result());
+    }
+
+    Typecheck result = typecheck_function_result(function_call, return_value);
+
+    state.add_typechecking_result(function_call->get_function()->get_id(),
+                                  function_call->get_id(),
+                                  -1,
+                                  result);
 
     state.destroy_call(function_call);
 
@@ -505,7 +530,9 @@ void promise_force_exit(dyntracer_t* dyntracer, const SEXP promise) {
     promise_state->set_execution_time(exec_ctxt.get_execution_time());
 
     if (promise_state->is_argument()) {
-        state.typecheck_function_argument(promise_state, value);
+        for (Argument* argument: promise_state->get_arguments()) {
+            argument->typecheck(value);
+        }
     }
 
     state.exit_probe(Event::PromiseForceExit);

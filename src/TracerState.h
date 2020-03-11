@@ -1007,13 +1007,6 @@ class TracerState {
             value =
                 new DenotedValue(get_next_denoted_value_id_(), argument, false);
             value->set_creation_scope(infer_creation_scope());
-
-            /*
-            add_typechecking_result(call->get_function()->get_id(),
-                                    call->get_id(),
-                                    formal_parameter_position,
-                                    satisfies(argument, ));
-            */
         }
 
         bool default_argument = true;
@@ -1033,6 +1026,8 @@ class TracerState {
         value->add_argument(arg);
 
         call->add_argument(arg);
+
+        arg->typecheck(argument);
     }
 
     void process_closure_arguments_(Call* call, const SEXP op) {
@@ -1610,50 +1605,6 @@ class TracerState {
 
         return type_declaration_cache_.get_function_type(package_name,
                                                          function_name);
-    }
-
-    void typecheck_function_argument(DenotedValue* promise_state,
-                                     const SEXP value) {
-        Typecheck match_result;
-
-        Call* call = promise_state->get_last_argument()->get_call();
-
-        int parameter_position =
-            promise_state->get_last_argument()->get_formal_parameter_position();
-
-        Function* function = call->get_function();
-
-        if (function->has_valid_type_declaration()) {
-            const tastr::ast::FunctionTypeNode* type =
-                function->get_type_declaration();
-            const tastr::ast::TypeNode& arg_type =
-                *(type->get_parameter_types().at(parameter_position).get());
-            match_result = satisfies(value, arg_type);
-        } else {
-            match_result = Typecheck::NotAvailable;
-        }
-
-        add_typechecking_result(function->get_id(),
-                                call->get_id(),
-                                parameter_position,
-                                match_result);
-    }
-
-    void typecheck_function_result(Call* call, const SEXP return_value) {
-        Function* function = call->get_function();
-        int position = -1;
-        Typecheck match_result;
-
-        if (function->has_valid_type_declaration()) {
-            const tastr::ast::FunctionTypeNode* type =
-                function->get_type_declaration();
-            match_result = satisfies(return_value, type->get_return_type());
-        } else {
-            match_result = Typecheck::NotAvailable;
-        }
-
-        add_typechecking_result(
-            function->get_id(), call->get_id(), position, match_result);
     }
 
     void add_typechecking_result(const function_id_t& function_id,

@@ -8,9 +8,9 @@
 #include "SubstituteSummary.h"
 #include "sexptypes.h"
 #include "utilities.h"
-#include <tastr/ast/ast.hpp>
 
 #include <fstream>
+#include <tastr/ast/ast.hpp>
 
 class Function {
   public:
@@ -215,8 +215,8 @@ class Function {
         type_declaration_ = type_declaration;
     }
 
-    const tastr::ast::FunctionTypeNode* get_type_declaration() const {
-        return type_declaration_;
+    const tastr::ast::FunctionTypeNode& get_type_declaration() const {
+        return *type_declaration_;
     }
 
     bool has_valid_type_declaration() const {
@@ -225,6 +225,18 @@ class Function {
 
     bool has_invalid_type_declaration() const {
         return type_declaration_ == nullptr;
+    }
+
+    const tastr::ast::TypeNode&
+    get_parameter_type(int formal_parameter_position) const {
+        return *get_type_declaration()
+                    .get_parameter_types()
+                    .at(formal_parameter_position)
+                    .get();
+    }
+
+    const tastr::ast::TypeNode& get_return_type() const {
+        return get_type_declaration().get_return_type();
     }
 
   private:

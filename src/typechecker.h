@@ -5,7 +5,7 @@
 
 #include <tastr/ast/ast.hpp>
 
-enum class Typecheck { Mismatch, Match, NotAvailable };
+enum class Typecheck { Undefined, Mismatch, Match, NotAvailable };
 
 std::ostream& operator<<(std::ostream& os, const Typecheck& typecheck);
 
