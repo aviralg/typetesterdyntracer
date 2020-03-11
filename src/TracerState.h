@@ -15,8 +15,10 @@
 #include "Variable.h"
 #include "sexptypes.h"
 #include "stdlibs.h"
+#include "typechecker.h"
 
 #include <iostream>
+#include <tastr/parser/parser.hpp>
 #include <unordered_map>
 
 class TracerState {
@@ -291,6 +293,13 @@ class TracerState {
                               truncate_,
                               binary_,
                               compression_level_);
+
+        typechecking_data_table_ = create_data_table(
+            output_dirpath_ + "/" + "typechecking",
+            {"function_id", "call_id", "parameter_position", "match"},
+            truncate_,
+            binary_,
+            compression_level_);
     }
 
     ~TracerState() {
@@ -306,6 +315,7 @@ class TracerState {
         delete context_sensitive_lookups_data_table_;
         delete promise_lifecycles_data_table_;
         delete promise_gc_data_table_;
+        delete typechecking_data_table_;
     }
 
     const std::string& get_output_dirpath() const {
@@ -436,6 +446,7 @@ class TracerState {
     DataTableStream* context_sensitive_lookups_data_table_;
     DataTableStream* promise_lifecycles_data_table_;
     DataTableStream* promise_gc_data_table_;
+    DataTableStream* typechecking_data_table_;
 
     void serialize_configuration_() const {
         std::ofstream fout(get_output_dirpath() + "/CONFIGURATION",
@@ -991,6 +1002,13 @@ class TracerState {
             value =
                 new DenotedValue(get_next_denoted_value_id_(), argument, false);
             value->set_creation_scope(infer_creation_scope());
+
+            /*
+            add_typechecking_result(call->get_function()->get_id(),
+                                    call->get_id(),
+                                    formal_parameter_position,
+                                    satisfies(argument, ));
+            */
         }
 
         bool default_argument = true;
@@ -1572,6 +1590,79 @@ class TracerState {
                 summary.get_promise_lifecycle().get_event_counts(),
                 summary.get_promise_count());
         }
+    }
+
+    std::optional<tastr::ast::TypeNode*>
+    get_type_declaration(Function* function, Call* call) {
+        std::string package_name = function->get_namespace();
+        if (package_name == "") {
+            return {};
+        }
+
+        std::string function_name = call->get_function_name();
+
+        if (function_name == "") {
+            return {};
+        }
+
+        return type_declaration_cache_.get_function_type(package_name,
+                                                         function_name);
+    }
+
+    void typecheck_function_argument(DenotedValue* promise_state,
+                                     const SEXP value) {
+        Typecheck match_result;
+
+        Call* call = promise_state->get_last_argument()->get_call();
+
+        int parameter_position =
+            promise_state->get_last_argument()->get_formal_parameter_position();
+
+        Function* function = call->get_function();
+
+        std::optional<tastr::ast::TypeNode*> fun_type =
+            get_type_declaration(function, call);
+
+        if (fun_type) {
+            tastr::ast::FunctionTypeNode& type =
+                static_cast<tastr::ast::FunctionTypeNode&>(*fun_type.value());
+            tastr::ast::TypeNode& arg_type =
+                *type.get_parameter_types().at(parameter_position).get();
+            match_result = satisfies(value, arg_type);
+        } else {
+            match_result = Typecheck::NotAvailable;
+        }
+
+        add_typechecking_result(function->get_id(),
+                                call->get_id(),
+                                parameter_position,
+                                match_result);
+    }
+
+    void typecheck_function_result(Call* call, const SEXP return_value) {
+        Function* function = call->get_function();
+        std::optional<tastr::ast::TypeNode*> fun_type =
+            get_type_declaration(function, call);
+        int position = -1;
+        Typecheck match_result;
+        if (fun_type) {
+            tastr::ast::FunctionTypeNode& type =
+                static_cast<tastr::ast::FunctionTypeNode&>(*fun_type.value());
+            match_result = satisfies(return_value, type.get_return_type());
+        } else {
+            match_result = Typecheck::NotAvailable;
+        }
+
+        add_typechecking_result(
+            function->get_id(), call->get_id(), position, match_result);
+    }
+
+    void add_typechecking_result(const function_id_t& function_id,
+                                 call_id_t call_id,
+                                 int parameter_position,
+                                 Typecheck match_result) {
+        typechecking_data_table_->write_row(
+            function_id, call_id, parameter_position, to_string(match_result));
     }
 
   private:

@@ -178,6 +178,8 @@ void closure_exit(dyntracer_t* dyntracer,
 
     function_call->set_return_value_type(type_of_sexp(return_value));
 
+    state.typecheck_function_result(function_call, return_value);
+
     state.notify_caller(function_call);
 
     state.destroy_call(function_call);
@@ -501,6 +503,10 @@ void promise_force_exit(dyntracer_t* dyntracer, const SEXP promise) {
     promise_state->set_value_type(type_of_sexp(value));
 
     promise_state->set_execution_time(exec_ctxt.get_execution_time());
+
+    if (promise_state->is_argument()) {
+        state.typecheck_function_argument(promise_state, value);
+    }
 
     state.exit_probe(Event::PromiseForceExit);
 }

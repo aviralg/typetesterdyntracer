@@ -5,6 +5,12 @@
 
 #include <tastr/ast/ast.hpp>
 
-bool satisfies(SEXP value, const tastr::ast::TypeNode& type);
+enum class Typecheck { Mismatch, Match, NotAvailable };
+
+std::ostream& operator<<(std::ostream& os, const Typecheck& typecheck);
+
+std::string to_string(const Typecheck& typecheck);
+
+Typecheck satisfies(SEXP value, const tastr::ast::TypeNode& type);
 
 #endif /* TYPETESTERDYNTRACER_TYPECHECKER_H */

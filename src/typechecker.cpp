@@ -12,99 +12,125 @@ using tastr::ast::TypeNodeSequenceNode;
 using tastr::ast::UnionTypeNode;
 using tastr::ast::VectorTypeNode;
 
-bool satisfies_character(const TypeNode& type, int length) {
+static Typecheck to_typecheck(bool result) {
+    return result ? Typecheck::Match : Typecheck::Mismatch;
+}
+
+std::ostream& operator<<(std::ostream& os, const Typecheck& typecheck) {
+    os << to_string(typecheck);
+    return os;
+}
+
+std::string to_string(const Typecheck& typecheck) {
+    switch (typecheck) {
+    case Typecheck::Mismatch:
+        return "Mismatch";
+        break;
+    case Typecheck::Match:
+        return "Match";
+        break;
+    case Typecheck::NotAvailable:
+        return "NotAvailable";
+        break;
+    }
+}
+
+Typecheck satisfies_character(const TypeNode& type, int length) {
     if (length == 1 && type.is_character_scalar_type_node()) {
-        return true;
+        return Typecheck::Match;
     } else if (type.is_vector_type_node()) {
         const ScalarTypeNode& inner_type =
             static_cast<const VectorTypeNode&>(type).get_scalar_type();
         if (inner_type.is_character_scalar_type_node()) {
-            return true;
+            return Typecheck::Match;
         }
     }
-    return false;
+    return Typecheck::Mismatch;
 }
 
-bool satisfies_logical(const TypeNode& type, int length) {
+Typecheck satisfies_logical(const TypeNode& type, int length) {
     if (length == 1 && type.is_logical_scalar_type_node()) {
-        return true;
+        return Typecheck::Match;
     } else if (type.is_vector_type_node()) {
         const ScalarTypeNode& inner_type =
             static_cast<const VectorTypeNode&>(type).get_scalar_type();
         if (inner_type.is_logical_scalar_type_node()) {
-            return true;
+            return Typecheck::Match;
         }
     }
-    return false;
+    return Typecheck::Mismatch;
 }
 
-bool satisfies_integer(const TypeNode& type, int length) {
+Typecheck satisfies_integer(const TypeNode& type, int length) {
     if (length == 1 && type.is_integer_scalar_type_node()) {
-        return true;
+        return Typecheck::Match;
     } else if (type.is_vector_type_node()) {
         const ScalarTypeNode& inner_type =
             static_cast<const VectorTypeNode&>(type).get_scalar_type();
         if (inner_type.is_integer_scalar_type_node()) {
-            return true;
+            return Typecheck::Match;
         }
     }
-    return false;
+    return Typecheck::Mismatch;
 }
 
-bool satisfies_double(const TypeNode& type, int length) {
+Typecheck satisfies_double(const TypeNode& type, int length) {
     if (length == 1 && type.is_double_scalar_type_node()) {
-        return true;
+        return Typecheck::Match;
     } else if (type.is_vector_type_node()) {
         const ScalarTypeNode& inner_type =
             static_cast<const VectorTypeNode&>(type).get_scalar_type();
         if (inner_type.is_double_scalar_type_node()) {
-            return true;
+            return Typecheck::Match;
         }
     }
-    return false;
+    return Typecheck::Mismatch;
 }
 
-bool satisfies_complex(const TypeNode& type, int length) {
+Typecheck satisfies_complex(const TypeNode& type, int length) {
     if (length == 1 && type.is_complex_scalar_type_node()) {
-        return true;
+        return Typecheck::Match;
     } else if (type.is_vector_type_node()) {
         const ScalarTypeNode& inner_type =
             static_cast<const VectorTypeNode&>(type).get_scalar_type();
         if (inner_type.is_complex_scalar_type_node()) {
-            return true;
+            return Typecheck::Match;
         }
     }
-    return false;
+    return Typecheck::Mismatch;
 }
 
-bool satisfies_raw(const TypeNode& type, int length) {
+Typecheck satisfies_raw(const TypeNode& type, int length) {
     if (length == 1 && type.is_raw_scalar_type_node()) {
-        return true;
+        return Typecheck::Match;
     } else if (type.is_vector_type_node()) {
         const ScalarTypeNode& inner_type =
             static_cast<const VectorTypeNode&>(type).get_scalar_type();
         if (inner_type.is_raw_scalar_type_node()) {
-            return true;
+            return Typecheck::Match;
         }
     }
-    return false;
+    return Typecheck::Mismatch;
 }
 
-bool satisfies_list(SEXP value, const ListTypeNode& type) {
+Typecheck satisfies_list(SEXP value, const ListTypeNode& type) {
     TypeNodeSequenceNode& element_types(type.get_element_types());
     int element_count = LENGTH(value);
     if (element_types.size() != element_count) {
-        return false;
+        return Typecheck::Mismatch;
     }
     for (int i = 0; i < element_count; ++i) {
-        if (!satisfies(VECTOR_ELT(value, i), *element_types.at(i).get())) {
-            return false;
+        Typecheck result =
+            satisfies(VECTOR_ELT(value, i), *element_types.at(i).get());
+
+        if (result != Typecheck::Match) {
+            return result;
         }
     }
-    return true;
+    return Typecheck::Match;
 }
 
-bool satisfies_struct(SEXP value, const StructTypeNode& type) {
+Typecheck satisfies_struct(SEXP value, const StructTypeNode& type) {
     TagTypePairNodeSequenceNode& element_types(type.get_element_types());
     int element_count = LENGTH(value);
     SEXP names = getAttrib(value, R_NamesSymbol);
@@ -112,30 +138,35 @@ bool satisfies_struct(SEXP value, const StructTypeNode& type) {
 
     if (element_types.size() != element_count ||
         element_types.size() != names_count) {
-        return false;
+        return Typecheck::Mismatch;
     }
 
     for (int i = 0; i < element_count; ++i) {
         TagTypePairNode& node(*element_types.at(i).get());
         std::string name = CHAR(STRING_ELT(names, i));
         if (node.get_identifier().get_name() != name) {
-            return false;
+            return Typecheck::Mismatch;
         }
-        if (!satisfies(VECTOR_ELT(value, i), node.get_type())) {
-            return false;
+        Typecheck result = satisfies(VECTOR_ELT(value, i), node.get_type());
+
+        if (result != Typecheck::Match) {
+            return result;
         }
     }
-    return true;
+    return Typecheck::Match;
 }
 
-bool satisfies(SEXP value, const TypeNode& type) {
+Typecheck satisfies(SEXP value, const TypeNode& type) {
     SEXPTYPE sexptype = TYPEOF(value);
 
     if (type.is_union_type_node()) {
         const UnionTypeNode& union_type =
             static_cast<const UnionTypeNode&>(type);
-        return satisfies(value, union_type.get_first_type()) ||
-               satisfies(value, union_type.get_second_type());
+        Typecheck result = satisfies(value, union_type.get_first_type());
+        if (result == Typecheck::Match) {
+            return result;
+        }
+        return satisfies(value, union_type.get_second_type());
     }
 
     if (type.is_group_type_node()) {
@@ -150,9 +181,15 @@ bool satisfies(SEXP value, const TypeNode& type) {
         return satisfies(value, nullable_type.get_inner_type());
     }
 
+    Typecheck result;
+
     switch (sexptype) {
     case NILSXP: /* null */
-        return (type.is_null_type_node() || type.is_nullable_type_node());
+        result = to_typecheck(type.is_null_type_node());
+        if (result == Typecheck::Match) {
+            return result;
+        }
+        return to_typecheck(type.is_nullable_type_node());
         break;
 
     case LGLSXP: /* logical */
@@ -180,27 +217,27 @@ bool satisfies(SEXP value, const TypeNode& type) {
         break;
 
     case S4SXP: /* S4 */
-        return type.is_s4_type_node();
+        return to_typecheck(type.is_s4_type_node());
         break;
 
     case SYMSXP: /* symbol */ /* name */
-        return type.is_symbol_type_node();
+        return to_typecheck(type.is_symbol_type_node());
         break;
 
     case LISTSXP: /* pairlist */
-        return type.is_pairlist_type_node();
+        return to_typecheck(type.is_pairlist_type_node());
         break;
 
     case ENVSXP: /* environment */
-        return type.is_environment_type_node();
+        return to_typecheck(type.is_environment_type_node());
         break;
 
     case LANGSXP: /* language */
-        return type.is_language_type_node();
+        return to_typecheck(type.is_language_type_node());
         break;
 
     case EXPRSXP: /* expression */
-        return type.is_expression_type_node();
+        return to_typecheck(type.is_expression_type_node());
         break;
 
     case VECSXP: /* list */
@@ -212,51 +249,51 @@ bool satisfies(SEXP value, const TypeNode& type) {
             return satisfies_struct(value,
                                     static_cast<const StructTypeNode&>(type));
         }
-        return false;
+        return Typecheck::Mismatch;
         break;
 
     case EXTPTRSXP: /* externalptr */
-        return type.is_external_pointer_type_node();
+        return to_typecheck(type.is_external_pointer_type_node());
         break;
 
     case BCODESXP: /* bytecode */
-        return type.is_bytecode_type_node();
+        return to_typecheck(type.is_bytecode_type_node());
         break;
 
     case WEAKREFSXP:
-        return type.is_weak_reference_type_node();
+        return to_typecheck(type.is_weak_reference_type_node());
         break;
 
     case DOTSXP:
-        return type.is_vararg_type_node();
+        return to_typecheck(type.is_vararg_type_node());
         break;
 
     case CLOSXP: /* closure */ /* TODO */
-        return false;
+        return Typecheck::Mismatch;
         break;
 
     case SPECIALSXP: /* special */ /* TODO */
-        return false;
+        return Typecheck::Mismatch;
         break;
 
     case BUILTINSXP: /* builtin */ /* TODO */
-        return false;
+        return Typecheck::Mismatch;
         break;
 
     case PROMSXP: /* promise */ /* TODO */
-        return false;
+        return Typecheck::Mismatch;
         break;
 
     case ANYSXP: /* any */ /* TODO */
-        return false;
+        return Typecheck::Mismatch;
         break;
 
     case CHARSXP: /* char */ /* TODO */
-        return false;
+        return Typecheck::Mismatch;
         break;
 
     default:
-        return type.is_any_type_node();
+        return to_typecheck(type.is_any_type_node());
         break;
     }
 }
