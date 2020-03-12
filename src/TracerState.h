@@ -294,12 +294,21 @@ class TracerState {
                               binary_,
                               compression_level_);
 
-        typechecking_data_table_ = create_data_table(
-            output_dirpath_ + "/" + "typechecking",
-            {"function_id", "call_id", "parameter_position", "match"},
-            truncate_,
-            binary_,
-            compression_level_);
+        typechecking_data_table_ =
+            create_data_table(output_dirpath_ + "/" + "typechecking",
+                              {"function_id",
+                               "call_id",
+                               "formal_parameter_position",
+                               "actual_argument_position",
+                               "is_default_argument",
+                               "is_dot_dot_dot",
+                               "is_forced",
+                               "outer_type",
+                               "inner_type",
+                               "match"},
+                              truncate_,
+                              binary_,
+                              compression_level_);
     }
 
     ~TracerState() {
@@ -1609,10 +1618,24 @@ class TracerState {
 
     void add_typechecking_result(const function_id_t& function_id,
                                  call_id_t call_id,
-                                 int parameter_position,
+                                 int formal_parameter_position,
+                                 int actual_argument_position,
+                                 bool default_argument,
+                                 bool dot_dot_dot,
+                                 bool forced,
+                                 sexptype_t outer_type,
+                                 sexptype_t inner_type,
                                  Typecheck match_result) {
-        typechecking_data_table_->write_row(
-            function_id, call_id, parameter_position, to_string(match_result));
+        typechecking_data_table_->write_row(function_id,
+                                            call_id,
+                                            formal_parameter_position,
+                                            actual_argument_position,
+                                            default_argument,
+                                            dot_dot_dot,
+                                            forced,
+                                            sexptype_to_string(outer_type),
+                                            sexptype_to_string(inner_type),
+                                            to_string(match_result));
     }
 
   private:

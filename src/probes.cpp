@@ -194,10 +194,17 @@ void closure_exit(dyntracer_t* dyntracer,
     state.notify_caller(function_call);
 
     for (const Argument* argument: function_call->get_arguments()) {
-        state.add_typechecking_result(function_call->get_function()->get_id(),
-                                      function_call->get_id(),
-                                      argument->get_formal_parameter_position(),
-                                      argument->get_typechecking_result());
+        state.add_typechecking_result(
+            function_call->get_function()->get_id(),
+            function_call->get_id(),
+            argument->get_formal_parameter_position(),
+            argument->get_actual_argument_position(),
+            argument->is_default_argument(),
+            argument->is_dot_dot_dot(),
+            argument->get_denoted_value()->is_forced(),
+            argument->get_outer_type(),
+            argument->get_inner_type(),
+            argument->get_typechecking_result());
     }
 
     Typecheck result = typecheck_function_result(function_call, return_value);
@@ -205,6 +212,12 @@ void closure_exit(dyntracer_t* dyntracer,
     state.add_typechecking_result(function_call->get_function()->get_id(),
                                   function_call->get_id(),
                                   -1,
+                                  -1,
+                                  false,
+                                  false,
+                                  false,
+                                  type_of_sexp(return_value),
+                                  type_of_sexp(return_value),
                                   result);
 
     state.destroy_call(function_call);
@@ -531,7 +544,7 @@ void promise_force_exit(dyntracer_t* dyntracer, const SEXP promise) {
 
     if (promise_state->is_argument()) {
         for (Argument* argument: promise_state->get_arguments()) {
-            argument->typecheck(value);
+            argument->typecheck(promise);
         }
     }
 

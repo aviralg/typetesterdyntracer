@@ -32,7 +32,9 @@ class Argument {
         , non_local_return_(false)
         , denoted_value_(nullptr)
         , forcing_actual_argument_position_(UNASSIGNED_ACTUAL_ARGUMENT_POSITION)
-        , typecheck_result_(Typecheck::Undefined) {
+        , typecheck_result_(Typecheck::Undefined)
+        , outer_type_(UNASSIGNEDSXP)
+        , inner_type_(UNASSIGNEDSXP) {
     }
 
     Call* get_call() {
@@ -135,6 +137,10 @@ class Argument {
         return denoted_value_;
     }
 
+    const DenotedValue* get_denoted_value() const {
+        return denoted_value_;
+    }
+
     void
     set_forcing_actual_argument_position(int forcing_actual_argument_position) {
         forcing_actual_argument_position_ = forcing_actual_argument_position;
@@ -148,6 +154,14 @@ class Argument {
 
     Typecheck get_typechecking_result() const {
         return typecheck_result_;
+    }
+
+    sexptype_t get_outer_type() const {
+        return outer_type_;
+    }
+
+    sexptype_t get_inner_type() const {
+        return inner_type_;
     }
 
   private:
@@ -168,6 +182,9 @@ class Argument {
     DenotedValue* denoted_value_;
     int forcing_actual_argument_position_;
     Typecheck typecheck_result_;
+    sexptype_t typecheck_type_;
+    sexptype_t outer_type_;
+    sexptype_t inner_type_;
 };
 
 #endif /* TYPETESTERDYNTRACER_ARGUMENT_H */
