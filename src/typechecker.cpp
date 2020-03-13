@@ -1,7 +1,9 @@
 #include "typechecker.h"
 
+using tastr::ast::AScalarTypeNode;
 using tastr::ast::GroupTypeNode;
 using tastr::ast::ListTypeNode;
+using tastr::ast::NAScalarTypeNode;
 using tastr::ast::NullableTypeNode;
 using tastr::ast::ScalarTypeNode;
 using tastr::ast::StructTypeNode;
@@ -38,82 +40,60 @@ std::string to_string(const Typecheck& typecheck) {
     }
 }
 
-Typecheck satisfies_character(const TypeNode& type, int length) {
-    if (length == 1 && type.is_character_scalar_type_node()) {
-        return Typecheck::Match;
-    } else if (type.is_vector_type_node()) {
-        const ScalarTypeNode& inner_type =
-            static_cast<const VectorTypeNode&>(type).get_scalar_type();
-        if (inner_type.is_character_scalar_type_node()) {
-            return Typecheck::Match;
-        }
+template <typename TypeChecker>
+Typecheck satisfies_scalar(const ScalarTypeNode& type,
+                           TypeChecker is_scalar_type,
+                           bool& na_allowed) {
+    if (type.is_na_scalar_type_node()) {
+        const NAScalarTypeNode& na_type(
+            static_cast<const NAScalarTypeNode&>(type));
+        na_allowed = true;
+        const AScalarTypeNode& a_type(na_type.get_a_scalar_type());
+
+        return is_scalar_type(a_type);
+    } else {
+        na_allowed = false;
+        return is_scalar_type(static_cast<const AScalarTypeNode&>(type));
     }
-    return Typecheck::Mismatch;
 }
 
-Typecheck satisfies_logical(const TypeNode& type, int length) {
-    if (length == 1 && type.is_logical_scalar_type_node()) {
-        return Typecheck::Match;
-    } else if (type.is_vector_type_node()) {
-        const ScalarTypeNode& inner_type =
-            static_cast<const VectorTypeNode&>(type).get_scalar_type();
-        if (inner_type.is_logical_scalar_type_node()) {
-            return Typecheck::Match;
-        }
+template <typename TypeChecker, typename NAChecker>
+Typecheck satisfies_vector_or_scalar(SEXP value,
+                                     const TypeNode& type,
+                                     TypeChecker is_scalar_type,
+                                     int length,
+                                     NAChecker is_na) {
+    if (!type.is_vector_type_node() && !type.is_scalar_type_node()) {
+        return Typecheck::Mismatch;
     }
-    return Typecheck::Mismatch;
-}
 
-Typecheck satisfies_integer(const TypeNode& type, int length) {
-    if (length == 1 && type.is_integer_scalar_type_node()) {
-        return Typecheck::Match;
-    } else if (type.is_vector_type_node()) {
-        const ScalarTypeNode& inner_type =
-            static_cast<const VectorTypeNode&>(type).get_scalar_type();
-        if (inner_type.is_integer_scalar_type_node()) {
-            return Typecheck::Match;
-        }
-    }
-    return Typecheck::Mismatch;
-}
+    bool na_allowed = false;
+    Typecheck result;
 
-Typecheck satisfies_double(const TypeNode& type, int length) {
-    if (length == 1 && type.is_double_scalar_type_node()) {
-        return Typecheck::Match;
-    } else if (type.is_vector_type_node()) {
-        const ScalarTypeNode& inner_type =
-            static_cast<const VectorTypeNode&>(type).get_scalar_type();
-        if (inner_type.is_double_scalar_type_node()) {
-            return Typecheck::Match;
+    if (type.is_scalar_type_node()) {
+        if (length > 1) {
+            return Typecheck::Mismatch;
         }
+        result = satisfies_scalar(static_cast<const ScalarTypeNode&>(type),
+                                  is_scalar_type,
+                                  na_allowed);
+    } else {
+        result = satisfies_scalar(
+            tastr::ast::as<VectorTypeNode>(type).get_scalar_type(),
+            is_scalar_type,
+            na_allowed);
     }
-    return Typecheck::Mismatch;
-}
 
-Typecheck satisfies_complex(const TypeNode& type, int length) {
-    if (length == 1 && type.is_complex_scalar_type_node()) {
-        return Typecheck::Match;
-    } else if (type.is_vector_type_node()) {
-        const ScalarTypeNode& inner_type =
-            static_cast<const VectorTypeNode&>(type).get_scalar_type();
-        if (inner_type.is_complex_scalar_type_node()) {
-            return Typecheck::Match;
+    if (!na_allowed) {
+        for (int i = 0; i < length; ++i) {
+            if (is_na(value, i)) {
+                result = Typecheck::Mismatch;
+                break;
+            }
         }
     }
-    return Typecheck::Mismatch;
-}
 
-Typecheck satisfies_raw(const TypeNode& type, int length) {
-    if (length == 1 && type.is_raw_scalar_type_node()) {
-        return Typecheck::Match;
-    } else if (type.is_vector_type_node()) {
-        const ScalarTypeNode& inner_type =
-            static_cast<const VectorTypeNode&>(type).get_scalar_type();
-        if (inner_type.is_raw_scalar_type_node()) {
-            return Typecheck::Match;
-        }
-    }
-    return Typecheck::Mismatch;
+    return result;
 }
 
 Typecheck satisfies_list(SEXP value, const ListTypeNode& type) {
@@ -196,27 +176,94 @@ Typecheck satisfies(SEXP value, const TypeNode& type) {
         break;
 
     case LGLSXP: /* logical */
-        return satisfies_logical(type, LENGTH(value));
+        return satisfies_vector_or_scalar(
+            value,
+            type,
+            [](const AScalarTypeNode& node) -> Typecheck {
+                return node.is_logical_a_scalar_type_node()
+                           ? Typecheck::Match
+                           : Typecheck::Mismatch;
+            },
+            LENGTH(value),
+            [](SEXP vector, int index) -> bool {
+                return LOGICAL_ELT(vector, index) == NA_LOGICAL;
+            });
         break;
 
     case INTSXP: /* integer */
-        return satisfies_integer(type, LENGTH(value));
+        return satisfies_vector_or_scalar(
+            value,
+            type,
+            [](const AScalarTypeNode& node) -> Typecheck {
+                return node.is_integer_a_scalar_type_node()
+                           ? Typecheck::Match
+                           : Typecheck::Mismatch;
+            },
+            LENGTH(value),
+            [](SEXP vector, int index) -> bool {
+                return INTEGER_ELT(vector, index) == NA_INTEGER;
+            });
         break;
 
     case RAWSXP: /* raw */
-        return satisfies_raw(type, LENGTH(value));
+        return satisfies_vector_or_scalar(
+            value,
+            type,
+            [](const AScalarTypeNode& node) -> Typecheck {
+                return node.is_raw_a_scalar_type_node() ? Typecheck::Match
+                                                        : Typecheck::Mismatch;
+            },
+            LENGTH(value),
+            [](SEXP vector, int index) -> bool {
+                /* NOTE: no such thing as a raw NA */
+                return false;
+            });
         break;
 
     case REALSXP: /* numeric */ /* double */
-        return satisfies_double(type, LENGTH(value));
+        return satisfies_vector_or_scalar(
+            value,
+            type,
+            [](const AScalarTypeNode& node) -> Typecheck {
+                return node.is_double_a_scalar_type_node()
+                           ? Typecheck::Match
+                           : Typecheck::Mismatch;
+            },
+            LENGTH(value),
+            [](SEXP vector, int index) -> bool {
+                return ISNAN(REAL_ELT(vector, index));
+            });
         break;
 
     case CPLXSXP: /* complex */
-        return satisfies_complex(type, LENGTH(value));
+        return satisfies_vector_or_scalar(
+            value,
+            type,
+            [](const AScalarTypeNode& node) -> Typecheck {
+                return node.is_complex_a_scalar_type_node()
+                           ? Typecheck::Match
+                           : Typecheck::Mismatch;
+            },
+            LENGTH(value),
+            [](SEXP vector, int index) -> bool {
+                Rcomplex v = COMPLEX_ELT(vector, index);
+                return (ISNAN(v.r) || ISNAN(v.i));
+            });
         break;
 
     case STRSXP: /* character */
-        return satisfies_character(type, LENGTH(value));
+        return satisfies_vector_or_scalar(
+            value,
+            type,
+            [](const AScalarTypeNode& node) -> Typecheck {
+                return node.is_character_a_scalar_type_node()
+                           ? Typecheck::Match
+                           : Typecheck::Mismatch;
+            },
+            LENGTH(value),
+            [](SEXP vector, int index) -> bool {
+                return STRING_ELT(vector, index) == NA_STRING;
+            });
         break;
 
     case S4SXP: /* S4 */
