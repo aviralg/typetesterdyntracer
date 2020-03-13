@@ -45,15 +45,14 @@ Typecheck satisfies_scalar(const ScalarTypeNode& type,
                            TypeChecker is_scalar_type,
                            bool& na_allowed) {
     if (type.is_na_scalar_type_node()) {
-        const NAScalarTypeNode& na_type(
-            static_cast<const NAScalarTypeNode&>(type));
         na_allowed = true;
-        const AScalarTypeNode& a_type(na_type.get_a_scalar_type());
+        const AScalarTypeNode& a_type(
+            tastr::ast::as<NAScalarTypeNode>(type).get_a_scalar_type());
 
         return is_scalar_type(a_type);
     } else {
         na_allowed = false;
-        return is_scalar_type(static_cast<const AScalarTypeNode&>(type));
+        return is_scalar_type(tastr::ast::as<AScalarTypeNode>(type));
     }
 }
 
@@ -74,9 +73,8 @@ Typecheck satisfies_vector_or_scalar(SEXP value,
         if (length > 1) {
             return Typecheck::Mismatch;
         }
-        result = satisfies_scalar(static_cast<const ScalarTypeNode&>(type),
-                                  is_scalar_type,
-                                  na_allowed);
+        result = satisfies_scalar(
+            tastr::ast::as<ScalarTypeNode>(type), is_scalar_type, na_allowed);
     } else {
         result = satisfies_scalar(
             tastr::ast::as<VectorTypeNode>(type).get_scalar_type(),
@@ -143,8 +141,7 @@ Typecheck satisfies(SEXP value, const TypeNode& type) {
     SEXPTYPE sexptype = TYPEOF(value);
 
     if (type.is_union_type_node()) {
-        const UnionTypeNode& union_type =
-            static_cast<const UnionTypeNode&>(type);
+        const UnionTypeNode& union_type = tastr::ast::as<UnionTypeNode>(type);
         Typecheck result = satisfies(value, union_type.get_first_type());
         if (result == Typecheck::Match) {
             return result;
@@ -153,14 +150,13 @@ Typecheck satisfies(SEXP value, const TypeNode& type) {
     }
 
     if (type.is_group_type_node()) {
-        const GroupTypeNode& group_type =
-            static_cast<const GroupTypeNode&>(type);
+        const GroupTypeNode& group_type = tastr::ast::as<GroupTypeNode>(type);
         return satisfies(value, group_type.get_inner_type());
     }
 
     if (type.is_nullable_type_node() && sexptype != NILSXP) {
         const NullableTypeNode& nullable_type =
-            static_cast<const NullableTypeNode&>(type);
+            tastr::ast::as<NullableTypeNode>(type);
         return satisfies(value, nullable_type.get_inner_type());
     }
 
@@ -292,12 +288,11 @@ Typecheck satisfies(SEXP value, const TypeNode& type) {
 
     case VECSXP: /* list */
         if (type.is_list_type_node()) {
-            return satisfies_list(value,
-                                  static_cast<const ListTypeNode&>(type));
+            return satisfies_list(value, tastr::ast::as<ListTypeNode>(type));
         }
         if (type.is_struct_type_node()) {
             return satisfies_struct(value,
-                                    static_cast<const StructTypeNode&>(type));
+                                    tastr::ast::as<StructTypeNode>(type));
         }
         return Typecheck::Mismatch;
         break;
